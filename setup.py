@@ -204,7 +204,7 @@ setup(
               'monitor.migrations'],
     url='',
     license='',
-    author='kzmrt',
+    author='hisa369',
     author_email='',
     description=''
 )
