@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='graph',
+    name='denki',
     version='',
     packages=['venv.Lib.site-packages.pip', 'venv.Lib.site-packages.pip._vendor',
               'venv.Lib.site-packages.pip._vendor.idna', 'venv.Lib.site-packages.pip._vendor.pep517',
