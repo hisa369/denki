@@ -8,10 +8,8 @@ import logging
 from django.http import HttpResponseServerError
 from django.shortcuts import render, redirect
 import os
-from .forms import UploadFileForm
 from monitor import addCsv
 
-UPLOAD_DIR = os.path.dirname(os.path.abspath(__file__)) + '/uploads/'  # アップロードしたファイルを保存するディレクトリ
 
 logger = logging.getLogger('development')
 
@@ -39,45 +37,35 @@ def setPlt(pk):
 
     weather_data = WeatherData.objects.select_related('location').filter(location_id=pk)  # 対象ロケーションの気象データを取得
     # weather_data = WeatherData.objects.raw('SELECT * FROM weather_data WHERE location_id = %s', str(pk)) # このクエリでもOK
-    x = [data.data_datetime for data in weather_data] # 日時
-    y1 = [data.temperature for data in weather_data] # 気温
-    y2 = [data.humidity for data in weather_data]  # 湿度
-    """
-    # 横に3つのグラフを並べる：axes([左, 下, 幅, 高さ])
-    plt.axes([0.5, 0.5, 1.0, 1.0])  # 1つ目のグラフ
-    plt.plot(x, y1, x, y2)
+#    x = [data.data_datetime for data in weather_data] # 日時
+    x = [data.nengetu for data in weather_data] # 日時
+    y1 = [data.kuchou for data in weather_data] # 空調
+    y2 = [data.dentou for data in weather_data]  # 電灯
+    y3 = [data.goukei for data in weather_data]  # 合計
 
-    plt.axes([1.7, 0.5, 1.0, 1.0])  # 2つ目のグラフ
-    plt.plot(x, y1)
+#グラフサイズ・X軸表示編集
+    plt.figure(figsize=(20, 10)) # figureの縦横の大きさ
+    plt.xticks(rotation=90)
 
-    plt.axes([2.9, 0.5, 1.0, 1.0])  # 3つ目のグラフ
-    plt.plot(x, y2)
-   """
-    """
-    # 縦に3つのグラフを並べる：axes([左, 下, 幅, 高さ])
-    plt.axes([0.5, 2.4, 1.0, 1.0])  # 1つ目のグラフ
-    plt.plot(x, y1, x, y2)
-    
-    plt.axes([0.5, 1.2, 1.0, 1.0])  # 2つ目のグラフ
-    plt.plot(x, y1)
-    
-    plt.axes([0.5, 0.0, 1.0, 1.0])  # 3つ目のグラフ
-    plt.plot(x, y2)
-   """
 
-    # 2×2のレイアウトに配置する
-    fig = plt.figure(figsize=(15, 10))
-    row = 2
-    col = 2
+    plt.title("電力使用量推移", fontname="MS Gothic")
+    plt.xlabel("年月", fontname="MS Gothic")
+    plt.ylabel("電力使用量", fontname="MS Gothic")
+    plt.plot(x, y1, marker="o")
+    plt.plot(x, y2, marker="o")
+    plt.plot(x, y3, marker="o")
+    plt.legend()
 
-    fig.add_subplot(row, col, 1)
-    plt.plot(x, y1, x, y2)
+    plt.legend([u'空調', u'電灯',u'合計'], prop={"family":"MS Gothic"})
 
-    fig.add_subplot(row, col, 3)
-    plt.plot(x, y1)
+#    plt.title("電力使用量")
+#    plt.scatter(x0, y0, label="label-A")
+#    plt.scatter(x1, y1, label="label-B")
+#    plt.xlabel("年月")
+#    plt.xlabel("Y-LABEL")
+#    plt.legend()
+#    plt.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=1, fontsize=30)
 
-    fig.add_subplot(row, col, 4)
-    plt.plot(x, y2)
 
 
 # svgへの変換
@@ -87,8 +75,6 @@ def pltToSvg():
     s = buf.getvalue()
     buf.close()
     return s
-
-
 def get_svg(request, pk):
     setPlt(pk)  # create the plot
     svg = pltToSvg()  # convert plot to SVG
@@ -97,32 +83,10 @@ def get_svg(request, pk):
     return response
 
 
+
 # アップロードされたファイルのハンドル
-def handle_uploaded_file(f):
-    path = os.path.join(UPLOAD_DIR, f.name)
-    with open(path, 'wb+') as destination:
-        for chunk in f.chunks():
-            destination.write(chunk)
-    try:
-        addCsv.insert_csv_data(path)  # csvデータをDBに登録する
-    except Exception as exc:
-        logger.error(exc)
-
-    os.remove(path)  # アップロードしたファイルを削除
 
 
-# ファイルアップロード
-def upload(request):
-    if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            handle_uploaded_file(request.FILES['file'])
-            return redirect('monitor:upload_complete')  # アップロード完了画面にリダイレクト
-    else:
-        form = UploadFileForm()
-    return render(request, 'monitor/upload.html', {'form': form})
-
-
-# ファイルアップロード完了
-def upload_complete(request):
-    return render(request, 'monitor/upload_complete.html')
+def post_list(request):
+    posts = Post.objects.all()
+    return render(request, 'monitor/post_list.html', {'posts': posts})

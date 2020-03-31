@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content1 %}
+        <div class="table">
+            <table border="4" width="100%" text-align="center">
+              <tr>
+                  <<th> 場所</th>
+                  <<th> 年月</th>
+                  <<th> 空調使用量</th>
+                  <<th> 電灯使用量</th>
+              </tr>
+      {% for i in posts %}
+              <tr>
+　                <<td> {{ i.location }}</td>>
+                  <<td> {{ i.nengetu }}</td>>
+                  <<td> {{ i.dento }}</td>>
+                  <<td> {{ i.kuchou }}</td>>
+              </tr>
+      {% endfor %}
+            </table>
+        </div>
+
+            <!-- personのfirst_name,last_nameをそれぞれ表示  -->
+
+
+{% endblock %}
